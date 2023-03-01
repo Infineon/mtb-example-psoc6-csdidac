@@ -5,20 +5,19 @@
 *              digital-to-analog converter (IDAC) as a current source and a
 *              current sink. CSD IDAC supports two channels - A and B.
 *
-*              1. IDAC as current sink: Channel A is configured for sinking
-*                 current and used for driving an LED. Firmware controls
-*                 the sinking current to toggle the LED every second.
-*
-*              2. IDAC as current source: Channel B is configured as a current
+*              1. IDAC as current source: Channel A is configured as a current
 *                 source. The current increases when a switch is pressed. Once
 *                 the output reaches its maximum value, it resets to zero and
 *                 starts to increase the value again. If the switch is not
 *                 pressed, it holds the last value.
+*              2. IDAC as current sink: Channel B is configured for sinking
+*                 current and used for driving an LED. Firmware controls
+*                 the sinking current to toggle the LED every second.
 *
 * Related Document: README.md
 *
 ********************************************************************************
-* Copyright 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2019-2023, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -111,6 +110,14 @@ int main(void)
     cy_en_csdidac_status_t status;
     cy_rslt_t result;
 
+#if defined(CY_DEVICE_SECURE)
+    cyhal_wdt_t wdt_obj;
+    /* Clear watchdog timer so that it doesn't trigger a reset */
+    result = cyhal_wdt_init(&wdt_obj, cyhal_wdt_get_max_timeout_ms());
+    CY_ASSERT(CY_RSLT_SUCCESS == result);
+    cyhal_wdt_free(&wdt_obj);
+#endif
+
     /* Initialize the device and board peripherals */
     result = cybsp_init();
 
@@ -143,7 +150,7 @@ int main(void)
     {
         if(CYBSP_BTN_PRESSED == cyhal_gpio_read(CYBSP_USER_BTN))
         {
-            status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_B, current_value,
+            status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_A, current_value,
                         &csdidac_context);
 
             check_status("Unable to set source current", status);
@@ -164,7 +171,7 @@ int main(void)
             if(led_control)
             {
                 /* Turns LED on */
-                status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_A,
+                status = Cy_CSDIDAC_OutputEnable(CY_CSDIDAC_B,
                                                  LED_ON_CURRENT, 
                                                  &csdidac_context);
 
@@ -173,10 +180,10 @@ int main(void)
             else
             {
                 /* Turns LED off  */
-                status = Cy_CSDIDAC_OutputDisable(CY_CSDIDAC_A,
+                status = Cy_CSDIDAC_OutputDisable(CY_CSDIDAC_B,
                                                   &csdidac_context);
 
-                check_status("Disable channel A command failed", status);
+                check_status("Disable channel B command failed", status);
             }
 
             led_control = !led_control;

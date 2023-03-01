@@ -833,7 +833,7 @@
                 </Mux>
             </Netlist>
         </Device>
-        <Device mpn="Sterling-LWB5+/CYW4373EUBGT">
+        <Device mpn="Sterling-LWB+/CYW43439KUBG">
             <BlockConfig>
                 <Block location="bt[0].power[0]">
                     <Personality template="connectivity_bt" version="1.0">
